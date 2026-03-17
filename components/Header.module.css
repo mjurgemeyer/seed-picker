@@ -1,0 +1,18 @@
+.header { background: var(--c-surface); border-bottom: 1px solid var(--c-border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; gap: 16px; }
+.logo { font-family: var(--font-display); font-size: 22px; color: var(--c-accent); letter-spacing: -0.5px; }
+.logo span { color: var(--c-text); }
+.nav { display: flex; gap: 4px; flex: 1; justify-content: center; }
+.navBtn { background: none; border: none; color: var(--c-muted); padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.navBtn:hover { color: var(--c-text); background: rgba(255,255,255,0.06); }
+.active { color: var(--c-accent) !important; background: rgba(240,165,0,0.1) !important; }
+.userInfo { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--c-accent), var(--c-accent2)); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #000; flex-shrink: 0; }
+.userName { font-size: 13px; color: var(--c-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+.logoutBtn { background: none; border: 1px solid var(--c-border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--c-muted); transition: all 0.15s; }
+.logoutBtn:hover { border-color: var(--c-border2); color: var(--c-text); }
+
+@media (max-width: 600px) {
+  .header { padding: 0 14px; }
+  .userName { display: none; }
+  .navBtn { padding: 6px 10px; font-size: 12px; }
+}
