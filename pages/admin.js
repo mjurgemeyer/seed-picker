@@ -26,7 +26,12 @@ export default function AdminPage() {
     fetch('/api/tournament').then(r => r.json()).then(d => {
       setTournament(d.settings)
       setTeamsBySeed(d.teamsBySeed || {})
-      if (d.settings?.starts_at) setStartsAt(d.settings.starts_at.slice(0, 16))
+      if (d.settings?.starts_at) {
+        const localDt = new Date(d.settings.starts_at)
+        const offset = localDt.getTimezoneOffset() * 60000
+        const localIso = new Date(localDt.getTime() - offset).toISOString().slice(0, 16)
+        setStartsAt(localIso)
+      }
     })
   }, [])
 
