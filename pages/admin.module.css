@@ -45,3 +45,12 @@
   .main { padding: 20px 14px 40px; }
   .grid { grid-template-columns: 1fr; }
 }
+
+.teamRowElim { opacity: 0.5; }
+.undoBtn { background: rgba(255,255,255,0.06); border: 1px solid var(--c-border2); border-radius: 6px; padding: 4px 8px; font-size: 13px; color: var(--c-muted); font-weight: 700; transition: all 0.15s; line-height: 1; }
+.undoBtn:hover:not(:disabled) { color: var(--c-text); }
+.undoBtn:disabled { opacity: 0.3; cursor: not-allowed; }
+.elimBtn { background: rgba(255,255,255,0.05); border: 1px solid var(--c-border); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--c-muted); font-weight: 600; transition: all 0.15s; white-space: nowrap; }
+.elimBtn:hover:not(:disabled) { border-color: rgba(232,64,64,0.4); color: #ff8080; }
+.elimBtnActive { background: rgba(232,64,64,0.15) !important; border-color: rgba(232,64,64,0.4) !important; color: #ff8080 !important; }
+.elimBtn:disabled { opacity: 0.4; cursor: not-allowed; }

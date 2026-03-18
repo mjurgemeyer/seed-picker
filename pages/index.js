@@ -9,13 +9,15 @@ const SEEDS = Array.from({ length: 16 }, (_, i) => ({ seed: i + 1, pts: 100 + i 
 
 export default function PicksPage() {
   const session = useSession()
-  const [tournament, setTournament] = useState(null)
   const [teamsBySeed, setTeamsBySeed] = useState({})
   const [activeEntry, setActiveEntry] = useState(0)
-  const [picks, setPicks] = useState([{}, {}]) // [{ [seed]: teamId }, ...]
+  const [picks, setPicks] = useState([{}, {}])
   const [saveStatus, setSaveStatus] = useState('idle')
-  const [hasEntry2, setHasEntry2] = useState(false)
+  const [hasEntry, setHasEntry] = useState([false, false])
   const [loading, setLoading] = useState(true)
+  const [deleteConfirm, setDeleteConfirm] = useState(null) // entry index pending delete
+  const [deleting, setDeleting] = useState(false)
+  const [tournament, setTournament] = useState(null)
 
   useEffect(() => {
     fetch('/api/tournament').then(r => r.json()).then(d => {
@@ -29,13 +31,15 @@ export default function PicksPage() {
     fetch('/api/picks/mine').then(r => r.json()).then(d => {
       if (d.entries) {
         const p = [{}, {}]
+        const has = [false, false]
         d.entries.forEach(e => {
           const map = {}
           e.picks.forEach(pk => { map[pk.seed] = pk.team_id })
           p[e.entry_index] = map
+          has[e.entry_index] = true
         })
         setPicks(p)
-        setHasEntry2(d.entries.length >= 2)
+        setHasEntry(has)
       }
       setLoading(false)
     })
@@ -54,11 +58,37 @@ export default function PicksPage() {
     })
     if (res.ok) {
       setSaveStatus('saved')
-      if (activeEntry === 1) setHasEntry2(true)
+      setHasEntry(prev => { const n = [...prev]; n[activeEntry] = true; return n })
       setTimeout(() => setSaveStatus('idle'), 2500)
     } else {
+      const data = await res.json()
+      console.error('Save error:', data)
       setSaveStatus('error')
     }
+  }
+
+  async function handleDeleteEntry(entryIndex) {
+    setDeleting(true)
+    const res = await fetch('/api/picks/delete-entry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entryIndex }),
+    })
+    if (res.ok) {
+      if (entryIndex === 0) {
+        // If entry 1 existed, it got promoted to entry 0
+        const wasEntry1 = hasEntry[1]
+        setPicks(prev => [wasEntry1 ? prev[1] : {}, {}])
+        setHasEntry([wasEntry1, false])
+        setActiveEntry(0)
+      } else {
+        setPicks(prev => [prev[0], {}])
+        setHasEntry(prev => [prev[0], false])
+        setActiveEntry(0)
+      }
+    }
+    setDeleteConfirm(null)
+    setDeleting(false)
   }
 
   function togglePick(seed, teamId) {
@@ -74,10 +104,11 @@ export default function PicksPage() {
 
   const curPicks = picks[activeEntry]
   const pickCount = Object.keys(curPicks).length
+  const showEntry2Tab = hasEntry[1] || Object.keys(picks[1]).length > 0
 
   if (!session) return (
     <>
-      <Head><title>BracketBuster — NCAA Seed Picker</title></Head>
+      <Head><title>SeedPicker — NCAA Seed Picker</title></Head>
       <Header />
       <Auth />
     </>
@@ -85,7 +116,7 @@ export default function PicksPage() {
 
   return (
     <>
-      <Head><title>BracketBuster — My Picks</title></Head>
+      <Head><title>SeedPicker — My Picks</title></Head>
       <Header activePage="picks" />
       <main className={styles.main} style={{ paddingBottom: locked ? 24 : 80 }}>
         <div className={styles.pageTitle}>My Picks</div>
@@ -99,10 +130,24 @@ export default function PicksPage() {
         </div>
 
         <div className={styles.entryTabs}>
-          <button className={`${styles.tab} ${activeEntry === 0 ? styles.activeTab : ''}`} onClick={() => setActiveEntry(0)}>Entry 1</button>
-          {(hasEntry2 || Object.keys(picks[1]).length > 0)
-            ? <button className={`${styles.tab} ${activeEntry === 1 ? styles.activeTab : ''}`} onClick={() => setActiveEntry(1)}>Entry 2</button>
-            : !locked && <button className={styles.addTab} onClick={() => setActiveEntry(1)}>+ Add Entry 2</button>
+          <button
+            className={`${styles.tab} ${activeEntry === 0 ? styles.activeTab : ''}`}
+            onClick={() => setActiveEntry(0)}
+          >
+            Entry 1
+          </button>
+          {showEntry2Tab
+            ? <button
+                className={`${styles.tab} ${activeEntry === 1 ? styles.activeTab : ''}`}
+                onClick={() => setActiveEntry(1)}
+              >
+                Entry 2
+              </button>
+            : !locked && (
+              <button className={styles.addTab} onClick={() => setActiveEntry(1)}>
+                + Add Entry 2
+              </button>
+            )
           }
         </div>
 
@@ -119,8 +164,12 @@ export default function PicksPage() {
                   {teams.map(t => {
                     const isSel = curPicks[seed] === t.id
                     return (
-                      <button key={t.id} className={`${styles.teamBtn} ${isSel ? styles.selected : ''}`}
-                        disabled={locked && !isSel} onClick={() => togglePick(seed, t.id)}>
+                      <button
+                        key={t.id}
+                        className={`${styles.teamBtn} ${isSel ? styles.selected : ''}`}
+                        disabled={locked && !isSel}
+                        onClick={() => togglePick(seed, t.id)}
+                      >
                         <div className={`${styles.check} ${isSel ? styles.checkFilled : ''}`}>
                           {isSel && <div className={styles.checkmark} />}
                         </div>
@@ -135,13 +184,38 @@ export default function PicksPage() {
           })}
         </div>
 
+        {/* Delete entry button — only shown when entry has been saved */}
+        {!locked && hasEntry[activeEntry] && (
+          <div className={styles.deleteSection}>
+            {deleteConfirm === activeEntry ? (
+              <div className={styles.deleteConfirm}>
+                <span>Remove Entry {activeEntry + 1}? {activeEntry === 0 && hasEntry[1] ? 'Entry 2 will become Entry 1.' : 'This cannot be undone.'}</span>
+                <button className={styles.btnConfirmDelete} onClick={() => handleDeleteEntry(activeEntry)} disabled={deleting}>
+                  {deleting ? 'Removing…' : 'Yes, remove'}
+                </button>
+                <button className={styles.btnCancelDelete} onClick={() => setDeleteConfirm(null)}>Cancel</button>
+              </div>
+            ) : (
+              <button className={styles.btnDeleteEntry} onClick={() => setDeleteConfirm(activeEntry)}>
+                Remove Entry {activeEntry + 1}
+              </button>
+            )}
+          </div>
+        )}
+
         {!locked && (
           <div className={styles.saveBar}>
-            <div className={styles.picksCount}>Entry {activeEntry + 1}: <strong>{pickCount}/16</strong> seeds picked</div>
+            <div className={styles.picksCount}>
+              Entry {activeEntry + 1}: <strong>{pickCount}/16</strong> seeds picked
+            </div>
             <div className={styles.saveRight}>
               {saveStatus === 'saved' && <span className={styles.savedMsg}>✓ Saved!</span>}
               {saveStatus === 'error' && <span className={styles.errorMsg}>Save failed — try again</span>}
-              <button className={styles.saveBtn} onClick={handleSave} disabled={pickCount === 0 || saveStatus === 'saving'}>
+              <button
+                className={styles.saveBtn}
+                onClick={handleSave}
+                disabled={pickCount === 0 || saveStatus === 'saving'}
+              >
                 {saveStatus === 'saving' ? 'Saving…' : 'Save Picks'}
               </button>
             </div>

@@ -21,47 +21,49 @@ export default async function handler(req, res) {
   const admin = createAdminClient()
   const { action } = req.body
 
-  // ── Lock / Unlock picks ──────────────────────────────────────────────────
   if (action === 'setLocked') {
     const { locked } = req.body
-    const { error } = await admin
-      .from('tournament_settings')
-      .update({ picks_locked: locked })
-      .eq('id', 1)
+    const { error } = await admin.from('tournament_settings').update({ picks_locked: locked }).eq('id', 1)
     if (error) return res.status(500).json({ error: error.message })
     return res.status(200).json({ ok: true })
   }
 
-  // ── Record a win for a team ──────────────────────────────────────────────
   if (action === 'recordWin') {
     const { teamId } = req.body
-    // Increment wins atomically using RPC or fetch+update
-    const { data: team, error: fetchErr } = await admin
-      .from('teams').select('wins').eq('id', teamId).single()
+    const { data: team, error: fetchErr } = await admin.from('teams').select('wins').eq('id', teamId).single()
     if (fetchErr) return res.status(500).json({ error: fetchErr.message })
-
-    const { error } = await admin
-      .from('teams')
-      .update({ wins: (team.wins || 0) + 1 })
-      .eq('id', teamId)
+    const { error } = await admin.from('teams').update({ wins: (team.wins || 0) + 1 }).eq('id', teamId)
     if (error) return res.status(500).json({ error: error.message })
     return res.status(200).json({ ok: true })
   }
 
-  // ── Update team name/region ──────────────────────────────────────────────
+  // Undo a win (in case of mis-click)
+  if (action === 'undoWin') {
+    const { teamId } = req.body
+    const { data: team, error: fetchErr } = await admin.from('teams').select('wins').eq('id', teamId).single()
+    if (fetchErr) return res.status(500).json({ error: fetchErr.message })
+    const { error } = await admin.from('teams').update({ wins: Math.max(0, (team.wins || 0) - 1) }).eq('id', teamId)
+    if (error) return res.status(500).json({ error: error.message })
+    return res.status(200).json({ ok: true })
+  }
+
+  if (action === 'setEliminated') {
+    const { teamId, eliminated } = req.body
+    const { error } = await admin.from('teams').update({ eliminated }).eq('id', teamId)
+    if (error) return res.status(500).json({ error: error.message })
+    return res.status(200).json({ ok: true })
+  }
+
   if (action === 'updateTeam') {
     const { teamId, name, region } = req.body
-    const { error } = await admin
-      .from('teams').update({ name, region }).eq('id', teamId)
+    const { error } = await admin.from('teams').update({ name, region }).eq('id', teamId)
     if (error) return res.status(500).json({ error: error.message })
     return res.status(200).json({ ok: true })
   }
 
-  // ── Update tournament start time ─────────────────────────────────────────
   if (action === 'setStartTime') {
     const { startsAt } = req.body
-    const { error } = await admin
-      .from('tournament_settings').update({ starts_at: startsAt }).eq('id', 1)
+    const { error } = await admin.from('tournament_settings').update({ starts_at: startsAt }).eq('id', 1)
     if (error) return res.status(500).json({ error: error.message })
     return res.status(200).json({ ok: true })
   }

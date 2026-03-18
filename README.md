@@ -1,4 +1,4 @@
-# BracketBuster — Setup Guide
+# SeedPicker — Setup Guide
 
 A full-stack NCAA seed picking competition app built with Next.js + Supabase.
 

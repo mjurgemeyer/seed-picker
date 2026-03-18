@@ -23,7 +23,7 @@ export default function Header() {
 
   return (
     <header className={styles.header}>
-      <Link href="/" className={styles.logo}>Bracket<span>Buster</span></Link>
+      <Link href="/" className={styles.logo}>Seed<span>Picker</span></Link>
       {user && (
         <>
           <nav className={styles.nav}>

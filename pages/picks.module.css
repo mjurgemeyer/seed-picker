@@ -48,3 +48,13 @@
   .grid { grid-template-columns: 1fr; }
   .main { padding: 20px 14px; }
 }
+
+.deleteSection { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--c-border); display: flex; justify-content: flex-start; }
+.btnDeleteEntry { background: none; border: 1px solid rgba(232,64,64,0.3); border-radius: 8px; padding: 8px 16px; color: #ff8080; font-size: 13px; transition: all 0.15s; }
+.btnDeleteEntry:hover { background: rgba(232,64,64,0.08); border-color: rgba(232,64,64,0.5); }
+.deleteConfirm { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--c-muted); }
+.btnConfirmDelete { background: rgba(232,64,64,0.15); border: 1px solid rgba(232,64,64,0.4); border-radius: 6px; padding: 6px 14px; color: #ff8080; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+.btnConfirmDelete:hover:not(:disabled) { background: rgba(232,64,64,0.25); }
+.btnConfirmDelete:disabled { opacity: 0.5; cursor: not-allowed; }
+.btnCancelDelete { background: none; border: 1px solid var(--c-border2); border-radius: 6px; padding: 6px 14px; color: var(--c-muted); font-size: 13px; transition: all 0.15s; }
+.btnCancelDelete:hover { color: var(--c-text); border-color: var(--c-border2); }

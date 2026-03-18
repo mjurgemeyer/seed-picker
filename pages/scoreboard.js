@@ -24,7 +24,7 @@ export default function ScoreboardPage() {
 
   return (
     <>
-      <Head><title>BracketBuster — Scoreboard</title></Head>
+      <Head><title>SeedPicker — Scoreboard</title></Head>
       <Header />
       <main className={styles.main}>
         <div className={styles.pageTitle}>Scoreboard</div>
@@ -48,7 +48,8 @@ export default function ScoreboardPage() {
                 <tr>
                   <th style={{ width: 56 }}>Rank</th>
                   <th>Participant</th>
-                  <th style={{ width: 100 }}>Score</th>
+                  <th style={{ width: 90 }}>Score</th>
+                  {tournamentStarted && <th style={{ width: 110 }}>Best Possible</th>}
                   <th>Teams Picked</th>
                 </tr>
               </thead>
@@ -67,13 +68,19 @@ export default function ScoreboardPage() {
                         <div className={styles.entrySub}>{entry.pick_count} picks made</div>
                       </td>
                       <td><div className={styles.scorePts}>{entry.score.toLocaleString()}</div></td>
+                      {tournamentStarted && (
+                        <td>
+                          <div className={styles.bestPts}>{entry.best_possible.toLocaleString()}</div>
+                        </td>
+                      )}
                       <td>
                         {entry.picks ? (
                           <div className={styles.chips}>
                             {entry.picks.map((p, pi) => (
-                              <div key={pi} className={`${styles.chip} ${p.wins > 0 ? styles.activeChip : ''}`}>
+                              <div key={pi} className={`${styles.chip} ${p.wins > 0 ? styles.activeChip : ''} ${p.eliminated ? styles.eliminatedChip : ''}`}>
                                 #{p.seed} {p.team_name}
                                 {p.wins > 0 && <span className={styles.winsTag}>{p.wins}W</span>}
+                                {p.eliminated && <span className={styles.elimTag}>OUT</span>}
                               </div>
                             ))}
                           </div>

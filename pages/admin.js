@@ -13,7 +13,6 @@ export default function AdminPage() {
   const router = useRouter()
   const [tournament, setTournament] = useState(null)
   const [teamsBySeed, setTeamsBySeed] = useState({})
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState({})
   const [startsAt, setStartsAt] = useState('')
 
@@ -27,10 +26,7 @@ export default function AdminPage() {
     fetch('/api/tournament').then(r => r.json()).then(d => {
       setTournament(d.settings)
       setTeamsBySeed(d.teamsBySeed || {})
-      if (d.settings?.starts_at) {
-        setStartsAt(d.settings.starts_at.slice(0, 16))
-      }
-      setLoading(false)
+      if (d.settings?.starts_at) setStartsAt(d.settings.starts_at.slice(0, 16))
     })
   }, [])
 
@@ -50,17 +46,33 @@ export default function AdminPage() {
     setSaving(s => ({ ...s, lock: false }))
   }
 
-  async function handleWin(teamId) {
-    setSaving(s => ({ ...s, [teamId]: true }))
-    await adminAction({ action: 'recordWin', teamId })
+  async function handleWin(teamId, undo = false) {
+    const key = undo ? `undo_${teamId}` : teamId
+    setSaving(s => ({ ...s, [key]: true }))
+    await adminAction({ action: undo ? 'undoWin' : 'recordWin', teamId })
     setTeamsBySeed(prev => {
       const next = { ...prev }
       for (const seed in next) {
-        next[seed] = next[seed].map(t => t.id === teamId ? { ...t, wins: (t.wins || 0) + 1 } : t)
+        next[seed] = next[seed].map(t =>
+          t.id === teamId ? { ...t, wins: Math.max(0, (t.wins || 0) + (undo ? -1 : 1)) } : t
+        )
       }
       return next
     })
-    setSaving(s => ({ ...s, [teamId]: false }))
+    setSaving(s => ({ ...s, [key]: false }))
+  }
+
+  async function handleEliminated(teamId, eliminated) {
+    setSaving(s => ({ ...s, [`elim_${teamId}`]: true }))
+    await adminAction({ action: 'setEliminated', teamId, eliminated })
+    setTeamsBySeed(prev => {
+      const next = { ...prev }
+      for (const seed in next) {
+        next[seed] = next[seed].map(t => t.id === teamId ? { ...t, eliminated } : t)
+      }
+      return next
+    })
+    setSaving(s => ({ ...s, [`elim_${teamId}`]: false }))
   }
 
   async function handleTeamEdit(teamId, name, region) {
@@ -77,7 +89,7 @@ export default function AdminPage() {
 
   return (
     <>
-      <Head><title>BracketBuster — Admin</title></Head>
+      <Head><title>SeedPicker — Admin</title></Head>
       <Header />
       <main className={styles.main}>
         <div className={styles.pageTitle}>Admin Panel</div>
@@ -113,20 +125,43 @@ export default function AdminPage() {
           </div>
         </section>
 
-        {/* Record Wins */}
+        {/* Record Wins & Eliminations */}
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Record Wins</h3>
-          <p className={styles.sectionNote}>Click +Win each time a team advances to the next round.</p>
+          <h3 className={styles.sectionTitle}>Wins & Eliminations</h3>
+          <p className={styles.sectionNote}>
+            Record a win each time a team advances. Mark a team as eliminated when they lose —
+            this removes them from "Best Possible" score calculations on the scoreboard.
+          </p>
           <div className={styles.grid}>
             {SEEDS.map(({ seed, pts }) => (
               <div key={seed} className={styles.adminCard}>
                 <div className={styles.cardTitle}>#{seed} Seed — {pts} pts/win</div>
                 {(teamsBySeed[seed] || []).map(t => (
-                  <div key={t.id} className={styles.teamRow}>
+                  <div key={t.id} className={`${styles.teamRow} ${t.eliminated ? styles.teamRowElim : ''}`}>
                     <span className={styles.teamName}>{t.name}</span>
                     <span className={styles.winsCount}>{t.wins || 0}W</span>
-                    <button className={styles.winBtn} onClick={() => handleWin(t.id)} disabled={saving[t.id]}>
-                      {saving[t.id] ? '…' : '+Win'}
+                    <button
+                      className={styles.undoBtn}
+                      onClick={() => handleWin(t.id, true)}
+                      disabled={saving[`undo_${t.id}`] || !t.wins}
+                      title="Undo last win"
+                    >
+                      −
+                    </button>
+                    <button
+                      className={styles.winBtn}
+                      onClick={() => handleWin(t.id)}
+                      disabled={saving[t.id] || t.eliminated}
+                    >
+                      +Win
+                    </button>
+                    <button
+                      className={`${styles.elimBtn} ${t.eliminated ? styles.elimBtnActive : ''}`}
+                      onClick={() => handleEliminated(t.id, !t.eliminated)}
+                      disabled={saving[`elim_${t.id}`]}
+                      title={t.eliminated ? 'Mark as still alive' : 'Mark as eliminated'}
+                    >
+                      {t.eliminated ? 'OUT' : 'Elim'}
                     </button>
                   </div>
                 ))}

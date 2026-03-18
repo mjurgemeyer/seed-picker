@@ -28,16 +28,21 @@ export default async function handler(req, res) {
 
   const scoreboard = buildScoreboard(entries || [])
 
-  // Hide picks from other users until tournament starts
   const sanitized = scoreboard.map((e) => ({
     id: e.id,
     entry_name: e.entry_name,
     user_id: e.user_id,
     score: e.score,
+    best_possible: e.best_possible,
     pick_count: e.picks?.length ?? 0,
     picks: (tournamentStarted || e.user_id === user?.id)
-      ? e.picks.map((p) => ({ seed: p.seed, team_name: p.teams?.name, wins: p.teams?.wins ?? 0 }))
-      : null, // hidden
+      ? e.picks.map((p) => ({
+          seed: p.seed,
+          team_name: p.teams?.name,
+          wins: p.teams?.wins ?? 0,
+          eliminated: p.teams?.eliminated ?? false,
+        }))
+      : null,
   }))
 
   res.status(200).json({ scoreboard: sanitized, tournamentStarted })

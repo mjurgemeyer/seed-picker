@@ -37,3 +37,7 @@
 @media (max-width: 600px) {
   .main { padding: 20px 14px; }
 }
+
+.bestPts { font-size: 14px; color: var(--c-muted); font-weight: 500; }
+.eliminatedChip { opacity: 0.45; text-decoration: line-through; }
+.elimTag { background: rgba(232,64,64,0.2); border-radius: 3px; padding: 0 4px; font-size: 10px; font-weight: 600; color: #ff8080; margin-left: 2px; }
