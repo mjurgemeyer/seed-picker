@@ -1,9 +1,14 @@
-.main { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+.main { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
 .pageTitle { font-family: var(--font-display); font-size: 26px; margin-bottom: 4px; }
-.pageSub { color: var(--c-muted); font-size: 13px; margin-bottom: 24px; }
+.pageSub { color: var(--c-muted); font-size: 13px; margin-bottom: 0; }
+
+/* Side-by-side layout: prize card left, table right */
+.contentRow { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px; align-items: start; }
+
+.header { margin-bottom: 20px; }
 
 .tableWrap { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden; overflow-x: auto; }
-.table { width: 100%; border-collapse: collapse; min-width: 560px; }
+.table { width: 100%; border-collapse: collapse; min-width: 460px; }
 .table th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-muted); padding: 12px 16px; border-bottom: 1px solid var(--c-border); }
 .table td { padding: 14px 16px; border-bottom: 1px solid var(--c-border); font-size: 14px; vertical-align: top; }
 .table tbody tr:last-child td { border-bottom: none; }
@@ -16,16 +21,20 @@
 .rank3 { background: rgba(180,100,60,0.2); color: #c88060; }
 .rankOther { background: var(--c-surface2); color: var(--c-muted); }
 
-.entryName { font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.entryName { font-weight: 500; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .entrySub { font-size: 11px; color: var(--c-muted); margin-top: 2px; }
 .youBadge { font-size: 10px; color: var(--c-accent); background: rgba(240,165,0,0.12); padding: 1px 6px; border-radius: 20px; font-weight: 600; }
+.payoutBadge { font-size: 11px; font-weight: 600; color: var(--c-green); background: rgba(45,189,110,0.12); border: 1px solid rgba(45,189,110,0.25); padding: 1px 7px; border-radius: 20px; }
 
 .scorePts { font-family: var(--font-display); font-size: 20px; color: var(--c-accent); }
+.bestPts { font-size: 14px; color: var(--c-muted); font-weight: 500; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .chip { background: var(--c-surface2); border: 1px solid var(--c-border); border-radius: 4px; padding: 2px 8px; font-size: 11px; color: var(--c-muted); display: flex; align-items: center; gap: 4px; }
 .activeChip { border-color: rgba(45,189,110,0.4); color: #6ddba0; background: rgba(45,189,110,0.08); }
 .winsTag { background: rgba(45,189,110,0.2); border-radius: 3px; padding: 0 4px; font-size: 10px; font-weight: 600; }
+.eliminatedChip { opacity: 0.45; text-decoration: line-through; }
+.elimTag { background: rgba(232,64,64,0.2); border-radius: 3px; padding: 0 4px; font-size: 10px; font-weight: 600; color: #ff8080; margin-left: 2px; }
 .hidden { font-size: 12px; color: var(--c-muted); font-style: italic; }
 
 .empty { text-align: center; padding: 48px 24px; color: var(--c-muted); }
@@ -34,10 +43,24 @@
 
 .notice { margin-top: 14px; font-size: 12px; color: var(--c-muted); text-align: center; }
 
-@media (max-width: 600px) {
-  .main { padding: 20px 14px; }
-}
+/* Prize card — sits in left column, sticks to top */
+.prizeCard { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden; position: sticky; top: 76px; }
+.prizeHeader { background: var(--c-surface2); padding: 12px 16px; border-bottom: 1px solid var(--c-border); }
+.prizeTitle { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-muted); margin-bottom: 2px; }
+.prizePot { font-family: var(--font-display); font-size: 26px; color: var(--c-accent); line-height: 1.1; }
+.prizeSubtitle { font-size: 11px; color: var(--c-muted); margin-top: 2px; }
+.prizeRows { padding: 10px 8px; display: flex; flex-direction: column; gap: 4px; }
+.prizeRow { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; }
+.prizeRow:hover { background: rgba(255,255,255,0.03); }
+.medal { width: 32px; font-size: 11px; font-weight: 700; text-align: center; padding: 3px 6px; border-radius: 5px; }
+.medal1 { background: rgba(240,165,0,0.2); color: var(--c-accent); }
+.medal2 { background: rgba(180,180,180,0.15); color: #b4b4b4; }
+.medal3 { background: rgba(180,100,60,0.2); color: #c88060; }
+.prizePct { font-size: 12px; color: var(--c-muted); flex: 1; }
+.prizeAmount { font-size: 14px; font-weight: 600; color: var(--c-text); }
 
-.bestPts { font-size: 14px; color: var(--c-muted); font-weight: 500; }
-.eliminatedChip { opacity: 0.45; text-decoration: line-through; }
-.elimTag { background: rgba(232,64,64,0.2); border-radius: 3px; padding: 0 4px; font-size: 10px; font-weight: 600; color: #ff8080; margin-left: 2px; }
+@media (max-width: 700px) {
+  .main { padding: 20px 14px; }
+  .contentRow { grid-template-columns: 1fr; }
+  .prizeCard { position: static; }
+}

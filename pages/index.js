@@ -3,6 +3,7 @@ import { useSession } from '@supabase/auth-helpers-react'
 import Head from 'next/head'
 import Auth from '../components/Auth'
 import Header from '../components/Header'
+import VenmoModal from '../components/VenmoModal'
 import styles from './picks.module.css'
 
 const SEEDS = Array.from({ length: 16 }, (_, i) => ({ seed: i + 1, pts: 100 + i * 10 }))
@@ -15,9 +16,10 @@ export default function PicksPage() {
   const [saveStatus, setSaveStatus] = useState('idle')
   const [hasEntry, setHasEntry] = useState([false, false])
   const [loading, setLoading] = useState(true)
-  const [deleteConfirm, setDeleteConfirm] = useState(null) // entry index pending delete
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [tournament, setTournament] = useState(null)
+  const [showVenmo, setShowVenmo] = useState(false)
 
   useEffect(() => {
     fetch('/api/tournament').then(r => r.json()).then(d => {
@@ -76,7 +78,6 @@ export default function PicksPage() {
     })
     if (res.ok) {
       if (entryIndex === 0) {
-        // If entry 1 existed, it got promoted to entry 0
         const wasEntry1 = hasEntry[1]
         setPicks(prev => [wasEntry1 ? prev[1] : {}, {}])
         setHasEntry([wasEntry1, false])
@@ -120,7 +121,12 @@ export default function PicksPage() {
       <Header activePage="picks" />
       <main className={styles.main} style={{ paddingBottom: locked ? 24 : 80 }}>
         <div className={styles.pageTitle}>My Picks</div>
-        <div className={styles.pageSub}>Select one team per seed. Up to 2 entries allowed.</div>
+        <div className={styles.pageSub}>
+          Select one team per seed. Up to 2 entries allowed.{' '}
+          <button className={styles.venmoLink} onClick={() => setShowVenmo(true)}>
+            $100 per entry
+          </button>
+        </div>
 
         <div className={`${styles.banner} ${locked ? styles.locked : styles.open}`}>
           <span className={styles.dot} />
@@ -184,12 +190,11 @@ export default function PicksPage() {
           })}
         </div>
 
-        {/* Delete entry button — only shown when entry has been saved */}
         {!locked && hasEntry[activeEntry] && (
           <div className={styles.deleteSection}>
             {deleteConfirm === activeEntry ? (
               <div className={styles.deleteConfirm}>
-                <span>Remove Entry {activeEntry + 1}? {activeEntry === 0 && hasEntry[1] ? 'Entry 2 will become Entry 1.' : 'This cannot be undone.'}</span>
+                <span>Remove Entry {activeEntry + 1}?{activeEntry === 0 && hasEntry[1] ? ' Entry 2 will become Entry 1.' : ' This cannot be undone.'}</span>
                 <button className={styles.btnConfirmDelete} onClick={() => handleDeleteEntry(activeEntry)} disabled={deleting}>
                   {deleting ? 'Removing…' : 'Yes, remove'}
                 </button>
@@ -222,6 +227,8 @@ export default function PicksPage() {
           </div>
         )}
       </main>
+
+      {showVenmo && <VenmoModal onClose={() => setShowVenmo(false)} />}
     </>
   )
 }

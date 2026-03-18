@@ -58,3 +58,6 @@
 .btnConfirmDelete:disabled { opacity: 0.5; cursor: not-allowed; }
 .btnCancelDelete { background: none; border: 1px solid var(--c-border2); border-radius: 6px; padding: 6px 14px; color: var(--c-muted); font-size: 13px; transition: all 0.15s; }
 .btnCancelDelete:hover { color: var(--c-text); border-color: var(--c-border2); }
+
+.venmoLink { background: none; border: none; color: var(--c-accent); font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; padding: 0; font-family: var(--font-body); }
+.venmoLink:hover { opacity: 0.8; }
