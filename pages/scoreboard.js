@@ -5,33 +5,56 @@ import Header from '../components/Header'
 import styles from './scoreboard.module.css'
 
 const ENTRY_FEE = 100
-const PAYOUTS = [
-  { place: '1st', pct: 0.60,  label: '60%'   },
-  { place: '2nd', pct: 0.275, label: '27.5%' },
-  { place: '3rd', pct: 0.125, label: '12.5%' },
-]
+const LARGE_FIELD_THRESHOLD = 15
+
+// ≤15 entries: top 3 split the full pot (60 / 27.5 / 12.5%).
+// >15 entries: 4th gets $150 flat, 5th gets $100 flat,
+//              top 3 split the remaining pot at the same percentages.
+function calcPayouts(entryCount) {
+  const pot = entryCount * ENTRY_FEE
+  if (entryCount <= LARGE_FIELD_THRESHOLD) {
+    return [
+      { place: '1st', amount: Math.floor(pot * 0.600), label: '60%'   },
+      { place: '2nd', amount: Math.floor(pot * 0.275), label: '27.5%' },
+      { place: '3rd', amount: Math.floor(pot * 0.125), label: '12.5%' },
+    ]
+  }
+  const flat4th = 150
+  const flat5th = 100
+  const remaining = pot - flat4th - flat5th
+  return [
+    { place: '1st', amount: Math.floor(remaining * 0.600), label: '60% of remaining' },
+    { place: '2nd', amount: Math.floor(remaining * 0.275), label: '27.5% of remaining' },
+    { place: '3rd', amount: Math.floor(remaining * 0.125), label: '12.5% of remaining' },
+    { place: '4th', amount: flat4th,                       label: 'Flat payout'        },
+    { place: '5th', amount: flat5th,                       label: 'Flat payout'        },
+  ]
+}
+
+const medalClasses = ['medal1', 'medal2', 'medal3', 'medal4', 'medal5']
 
 function PrizeCard({ entryCount }) {
   const pot = entryCount * ENTRY_FEE
+  const payouts = calcPayouts(entryCount)
+  const isLarge = entryCount > LARGE_FIELD_THRESHOLD
   return (
     <div className={styles.prizeCard}>
       <div className={styles.prizeHeader}>
         <div className={styles.prizeTitle}>Prize Pool</div>
         <div className={styles.prizePot}>${pot.toLocaleString()}</div>
         <div className={styles.prizeSubtitle}>{entryCount} {entryCount === 1 ? 'entry' : 'entries'} × ${ENTRY_FEE}</div>
+        {isLarge && (
+          <div className={styles.prizeNote}>4th & 5th paid flat; top 3 split ${(pot - 250).toLocaleString()}</div>
+        )}
       </div>
       <div className={styles.prizeRows}>
-        {PAYOUTS.map((p, i) => {
-          const amount = Math.floor(pot * p.pct)
-          const medalClass = [styles.medal1, styles.medal2, styles.medal3][i]
-          return (
-            <div key={i} className={styles.prizeRow}>
-              <div className={`${styles.medal} ${medalClass}`}>{p.place}</div>
-              <div className={styles.prizePct}>{p.label}</div>
-              <div className={styles.prizeAmount}>${amount.toLocaleString()}</div>
-            </div>
-          )
-        })}
+        {payouts.map((p, i) => (
+          <div key={i} className={styles.prizeRow}>
+            <div className={`${styles.medal} ${styles[medalClasses[i]]}`}>{p.place}</div>
+            <div className={styles.prizePct}>{p.label}</div>
+            <div className={styles.prizeAmount}>${p.amount.toLocaleString()}</div>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -99,7 +122,7 @@ export default function ScoreboardPage() {
                     {scoreboard.map((entry, i) => {
                       const isMe = entry.user_id === myId
                       const rankClass = i === 0 ? styles.rank1 : i === 1 ? styles.rank2 : i === 2 ? styles.rank3 : styles.rankOther
-                      const payout = PAYOUTS[i]
+                      const payout = calcPayouts(entryCount)[i]
                       return (
                         <tr key={entry.id} className={isMe ? styles.myRow : ''}>
                           <td><div className={`${styles.rankBadge} ${rankClass}`}>{i + 1}</div></td>
@@ -109,7 +132,7 @@ export default function ScoreboardPage() {
                               {isMe && <span className={styles.youBadge}>YOU</span>}
                               {tournamentStarted && payout && (
                                 <span className={styles.payoutBadge}>
-                                  ${Math.floor(entryCount * ENTRY_FEE * payout.pct).toLocaleString()}
+                                  ${payout.amount.toLocaleString()}
                                 </span>
                               )}
                             </div>
