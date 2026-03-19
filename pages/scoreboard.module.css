@@ -5,7 +5,7 @@
 /* Side-by-side layout: prize card left, table right */
 .contentRow { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px; align-items: start; }
 
-.header { margin-bottom: 20px; }
+.header { margin-bottom: 20px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
 .tableWrap { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden; overflow-x: auto; }
 .table { width: 100%; border-collapse: collapse; min-width: 460px; }
@@ -38,7 +38,7 @@
 .winsTag { background: rgba(45,189,110,0.2); border-radius: 3px; padding: 0 4px; font-size: 10px; font-weight: 600; }
 .eliminatedChip { opacity: 0.45; text-decoration: line-through; }
 .elimTag { background: rgba(232,64,64,0.2); border-radius: 3px; padding: 0 4px; font-size: 10px; font-weight: 600; color: #ff8080; margin-left: 2px; }
-.hidden { font-size: 12px; color: var(--c-muted); font-style: italic; }
+.hidden { font-size: 12px; color: var(--c-muted); font-style: italic; margin-top: 4px; }
 
 .empty { text-align: center; padding: 48px 24px; color: var(--c-muted); }
 .emptyIcon { font-size: 40px; margin-bottom: 12px; }
@@ -64,10 +64,10 @@
 .medal6 { background: rgba(20,184,166,0.18);  color: #2dd4bf; }
 .prizeNote { font-size: 11px; color: var(--c-muted); margin-top: 6px; line-height: 1.4; }
 
-.teamsHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.toggleAllBtn { background: none; border: 1px solid var(--c-border2); border-radius: 5px; padding: 2px 8px; font-size: 10px; font-weight: 600; color: var(--c-muted); cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.15s; white-space: nowrap; }
+
+.toggleAllBtn { background: none; border: 1px solid var(--c-border2); border-radius: 6px; padding: 5px 12px; font-size: 11px; font-weight: 600; color: var(--c-muted); cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; margin-bottom: 2px; }
 .toggleAllBtn:hover { color: var(--c-text); border-color: var(--c-accent); }
-.toggleBtn { background: none; border: none; color: var(--c-muted); font-size: 11px; cursor: pointer; padding: 4px 0 0; display: block; transition: color 0.15s; }
+.toggleBtn { background: none; border: none; color: var(--c-muted); font-size: 11px; cursor: pointer; padding: 5px 0 0; display: block; transition: color 0.15s; }
 .toggleBtn:hover { color: var(--c-accent); }
 .elimStrike { text-decoration: line-through; opacity: 0.6; }
 .prizePct { font-size: 12px; color: var(--c-muted); flex: 1; }
@@ -91,3 +91,6 @@
 .paymentSummaryLabel { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-muted); }
 .paymentSummaryValue { font-size: 18px; font-weight: 600; color: var(--c-text); }
 .paymentSummaryAmount { font-size: 12px; color: var(--c-muted); }
+
+.picksRow td { border-bottom: 1px solid var(--c-border); }
+.picksCell { padding-bottom: 14px !important; }

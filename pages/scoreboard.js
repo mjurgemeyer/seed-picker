@@ -98,6 +98,9 @@ export default function ScoreboardPage() {
   const allExpanded = scoreboard.length > 0 && scoreboard.every(e => expanded.has(e.id))
   const paidCount = scoreboard.filter(e => e.paid).length
 
+  // Total column count so the picks row can colspan the full table
+  const colCount = 2 + (tournamentStarted ? 1 : 0) + (isAdmin ? 1 : 0) + 1 // rank + participant + score + optional cols
+
   function toggleRow(id) {
     setExpanded(prev => {
       const next = new Set(prev)
@@ -114,7 +117,6 @@ export default function ScoreboardPage() {
     if (togglingPaid.has(entry.id)) return
     setTogglingPaid(prev => new Set([...prev, entry.id]))
     const newPaid = !entry.paid
-    // Optimistic update
     setScoreboard(prev => prev.map(e => e.id === entry.id ? { ...e, paid: newPaid } : e))
     const res = await fetch('/api/admin', {
       method: 'POST',
@@ -122,7 +124,6 @@ export default function ScoreboardPage() {
       body: JSON.stringify({ action: 'setPaid', entryId: entry.id, paid: newPaid }),
     })
     if (!res.ok) {
-      // Revert on failure
       setScoreboard(prev => prev.map(e => e.id === entry.id ? { ...e, paid: entry.paid } : e))
     }
     setTogglingPaid(prev => { const next = new Set(prev); next.delete(entry.id); return next })
@@ -134,12 +135,19 @@ export default function ScoreboardPage() {
       <Header />
       <main className={styles.main}>
         <div className={styles.header}>
-          <div className={styles.pageTitle}>Scoreboard</div>
-          <div className={styles.pageSub}>
-            {tournamentStarted
-              ? 'Live standings — updates as teams advance.'
-              : 'Standings are visible, but picks are hidden until the tournament begins.'}
+          <div>
+            <div className={styles.pageTitle}>Scoreboard</div>
+            <div className={styles.pageSub}>
+              {tournamentStarted
+                ? 'Live standings — updates as teams advance.'
+                : 'Standings are visible, but picks are hidden until the tournament begins.'}
+            </div>
           </div>
+          {tournamentStarted && scoreboard.length > 0 && (
+            <button className={styles.toggleAllBtn} onClick={toggleAll}>
+              {allExpanded ? 'Hide all picks' : 'Show all picks'}
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -156,9 +164,7 @@ export default function ScoreboardPage() {
               {isAdmin && (
                 <div className={styles.paymentSummary}>
                   <span className={styles.paymentSummaryLabel}>Fees collected</span>
-                  <span className={styles.paymentSummaryValue}>
-                    {paidCount} / {entryCount}
-                  </span>
+                  <span className={styles.paymentSummaryValue}>{paidCount} / {entryCount}</span>
                   <span className={styles.paymentSummaryAmount}>
                     ${(paidCount * ENTRY_FEE).toLocaleString()} / ${(entryCount * ENTRY_FEE).toLocaleString()}
                   </span>
@@ -177,14 +183,6 @@ export default function ScoreboardPage() {
                       <th style={{ width: 90 }}>Score</th>
                       {tournamentStarted && <th style={{ width: 110 }}>Best Possible</th>}
                       {isAdmin && <th style={{ width: 70 }}>Paid</th>}
-                      <th>
-                        <div className={styles.teamsHeader}>
-                          Teams Picked
-                          <button className={styles.toggleAllBtn} onClick={toggleAll}>
-                            {allExpanded ? 'Hide all' : 'Show all'}
-                          </button>
-                        </div>
-                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -194,60 +192,67 @@ export default function ScoreboardPage() {
                       const payout = payouts[i]
                       const isExpanded = expanded.has(entry.id)
                       const isPendingPaid = togglingPaid.has(entry.id)
+                      const rowClass = `${isMe ? styles.myRow : ''} ${isAdmin && !entry.paid ? styles.unpaidRow : ''}`
+
                       return (
-                        <tr key={entry.id} className={`${isMe ? styles.myRow : ''} ${isAdmin && !entry.paid ? styles.unpaidRow : ''}`}>
-                          <td><div className={`${styles.rankBadge} ${rankClass}`}>{i + 1}</div></td>
-                          <td>
-                            <div className={styles.entryName}>
-                              {entry.entry_name}
-                              {isMe && <span className={styles.youBadge}>YOU</span>}
-                              {tournamentStarted && payout && (
-                                <span className={styles.payoutBadge}>${payout.amount.toLocaleString()}</span>
-                              )}
-                            </div>
-                            <div className={styles.entrySub}>{entry.pick_count} picks made</div>
-                          </td>
-                          <td><div className={styles.scorePts}>{entry.score.toLocaleString()}</div></td>
-                          {tournamentStarted && (
-                            <td><div className={styles.bestPts}>{entry.best_possible.toLocaleString()}</div></td>
-                          )}
-                          {isAdmin && (
+                        <>
+                          {/* Main data row */}
+                          <tr key={entry.id} className={rowClass}>
+                            <td><div className={`${styles.rankBadge} ${rankClass}`}>{i + 1}</div></td>
                             <td>
-                              <button
-                                className={`${styles.paidBtn} ${entry.paid ? styles.paidBtnPaid : styles.paidBtnUnpaid}`}
-                                onClick={() => togglePaid(entry)}
-                                disabled={isPendingPaid}
-                                title={entry.paid ? 'Mark as unpaid' : 'Mark as paid'}
-                              >
-                                {entry.paid ? '✓' : '—'}
-                              </button>
-                            </td>
-                          )}
-                          <td>
-                            {entry.picks ? (
-                              <div>
-                                {isExpanded && (
-                                  <div className={styles.chips}>
-                                    {entry.picks.map((p, pi) => (
-                                      <div key={pi} className={`${styles.chip} ${p.wins > 0 ? styles.activeChip : ''} ${p.eliminated ? styles.eliminatedChip : ''}`}>
-                                        <span className={p.eliminated ? styles.elimStrike : ''}>
-                                          #{p.seed} {p.team_name}
-                                        </span>
-                                        {p.wins > 0 && !p.eliminated && <span className={styles.winsTag}>{p.wins}W</span>}
-                                        {p.eliminated && <span className={styles.elimTag}>OUT</span>}
-                                      </div>
-                                    ))}
-                                  </div>
+                              <div className={styles.entryName}>
+                                {entry.entry_name}
+                                {isMe && <span className={styles.youBadge}>YOU</span>}
+                                {tournamentStarted && payout && (
+                                  <span className={styles.payoutBadge}>${payout.amount.toLocaleString()}</span>
                                 )}
+                              </div>
+                              {/* Toggle link always lives under the name */}
+                              {entry.picks ? (
                                 <button className={styles.toggleBtn} onClick={() => toggleRow(entry.id)}>
                                   {isExpanded ? '▲ Hide picks' : `▼ Show ${entry.pick_count} picks`}
                                 </button>
-                              </div>
-                            ) : (
-                              <span className={styles.hidden}>Hidden until tip-off</span>
+                              ) : (
+                                <div className={styles.hidden}>Hidden until tip-off</div>
+                              )}
+                            </td>
+                            <td><div className={styles.scorePts}>{entry.score.toLocaleString()}</div></td>
+                            {tournamentStarted && (
+                              <td><div className={styles.bestPts}>{entry.best_possible.toLocaleString()}</div></td>
                             )}
-                          </td>
-                        </tr>
+                            {isAdmin && (
+                              <td>
+                                <button
+                                  className={`${styles.paidBtn} ${entry.paid ? styles.paidBtnPaid : styles.paidBtnUnpaid}`}
+                                  onClick={() => togglePaid(entry)}
+                                  disabled={isPendingPaid}
+                                  title={entry.paid ? 'Mark as unpaid' : 'Mark as paid'}
+                                >
+                                  {entry.paid ? '✓' : '—'}
+                                </button>
+                              </td>
+                            )}
+                          </tr>
+
+                          {/* Picks expansion row — full-width via colspan */}
+                          {entry.picks && isExpanded && (
+                            <tr key={`${entry.id}-picks`} className={`${styles.picksRow} ${rowClass}`}>
+                              <td colSpan={colCount} className={styles.picksCell}>
+                                <div className={styles.chips}>
+                                  {entry.picks.map((p, pi) => (
+                                    <div key={pi} className={`${styles.chip} ${p.wins > 0 ? styles.activeChip : ''} ${p.eliminated ? styles.eliminatedChip : ''}`}>
+                                      <span className={p.eliminated ? styles.elimStrike : ''}>
+                                        #{p.seed} {p.team_name}
+                                      </span>
+                                      {p.wins > 0 && !p.eliminated && <span className={styles.winsTag}>{p.wins}W</span>}
+                                      {p.eliminated && <span className={styles.elimTag}>OUT</span>}
+                                    </div>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
                       )
                     })}
                   </tbody>

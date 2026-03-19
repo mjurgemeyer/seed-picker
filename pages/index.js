@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import { useSession } from '@supabase/auth-helpers-react'
 import Head from 'next/head'
 import Auth from '../components/Auth'
@@ -10,6 +11,7 @@ const SEEDS = Array.from({ length: 16 }, (_, i) => ({ seed: i + 1, pts: 100 + i 
 
 export default function PicksPage() {
   const session = useSession()
+  const router = useRouter()
   const [teamsBySeed, setTeamsBySeed] = useState({})
   const [activeEntry, setActiveEntry] = useState(0)
   const [picks, setPicks] = useState([{}, {}])
@@ -25,8 +27,12 @@ export default function PicksPage() {
     fetch('/api/tournament').then(r => r.json()).then(d => {
       setTournament(d.settings)
       setTeamsBySeed(d.teamsBySeed || {})
+      // Redirect logged-in users to scoreboard when picks are locked
+      if (d.settings?.picks_locked && session) {
+        router.replace('/scoreboard')
+      }
     })
-  }, [])
+  }, [session])
 
   useEffect(() => {
     if (!session) return
