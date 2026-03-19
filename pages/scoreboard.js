@@ -3,6 +3,7 @@ import { useSession } from '@supabase/auth-helpers-react'
 import Head from 'next/head'
 import Header from '../components/Header'
 import styles from './scoreboard.module.css'
+import LiveScores from '../components/LiveScores'
 
 const ENTRY_FEE = 100
 
@@ -163,6 +164,7 @@ export default function ScoreboardPage() {
                   </span>
                 </div>
               )}
+              <LiveScores />
             </div>
 
             <div>

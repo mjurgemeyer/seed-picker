@@ -1,0 +1,25 @@
+.wrap { margin-top: 10px; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden; }
+
+.header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--c-surface2); border-bottom: 1px solid var(--c-border); }
+.title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-muted); flex: 1; }
+.livePill { font-size: 10px; font-weight: 700; color: var(--c-red); letter-spacing: 0.5px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.refreshBtn { background: none; border: none; color: var(--c-muted); font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; transition: color 0.15s; }
+.refreshBtn:hover { color: var(--c-text); }
+
+.section { padding: 6px 8px; border-bottom: 1px solid var(--c-border); }
+.section:last-child { border-bottom: none; }
+
+.gameLive { background: rgba(232,64,64,0.04); }
+.gameLive:hover { background: rgba(232,64,64,0.07); }
+.game:not(.gameLive):hover { background: rgba(255,255,255,0.02); }
+
+.teams { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.team { display: flex; align-items: center; justify-content: space-between; }
+.teamAbbr { font-size: 12px; font-weight: 500; color: var(--c-muted); }
+.teamWinning .teamAbbr { color: var(--c-text); font-weight: 600; }
+.score { font-size: 13px; font-weight: 600; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.scoreWinning { color: var(--c-text); }
+
+.status { text-align: right; flex-shrink: 0; }
+.clock { font-size: 11px; color: var(--c-red); font-weight: 600; white-space: nowrap; }
