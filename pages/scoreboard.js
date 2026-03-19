@@ -167,7 +167,7 @@ export default function ScoreboardPage() {
                   <tbody>
                     {scoreboard.map((entry, i) => {
                       const isMe = entry.user_id === myId
-                      const rankClass = i === 0 ? styles.rank1 : i === 1 ? styles.rank2 : i === 2 ? styles.rank3 : styles.rankOther
+                      const rankClass = i === 0 ? styles.rank1 : i === 1 ? styles.rank2 : i === 2 ? styles.rank3 : i === 3 ? styles.rank4 : i === 4 ? styles.rank5 : i === 5 ? styles.rank6 : styles.rankOther
                       const payout = payouts[i]
                       const isExpanded = expanded.has(entry.id)
                       return (

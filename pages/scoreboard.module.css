@@ -16,9 +16,12 @@
 .myRow { background: rgba(240,165,0,0.04) !important; }
 
 .rankBadge { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
-.rank1 { background: rgba(240,165,0,0.2); color: var(--c-accent); }
-.rank2 { background: rgba(180,180,180,0.15); color: #b4b4b4; }
-.rank3 { background: rgba(180,100,60,0.2); color: #c88060; }
+.rank1 { background: rgba(240,165,0,0.22);  color: #f0a500; }
+.rank2 { background: rgba(192,210,240,0.2);  color: #90b8e8; }
+.rank3 { background: rgba(180,100,60,0.22);  color: #c88060; }
+.rank4 { background: rgba(59,130,246,0.2);   color: #60a5fa; }
+.rank5 { background: rgba(168,85,247,0.18);  color: #c084fc; }
+.rank6 { background: rgba(20,184,166,0.18);  color: #2dd4bf; }
 .rankOther { background: var(--c-surface2); color: var(--c-muted); }
 
 .entryName { font-weight: 500; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -53,12 +56,12 @@
 .prizeRow { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; }
 .prizeRow:hover { background: rgba(255,255,255,0.03); }
 .medal { width: 32px; font-size: 11px; font-weight: 700; text-align: center; padding: 3px 6px; border-radius: 5px; }
-.medal1 { background: rgba(240,165,0,0.2); color: var(--c-accent); }
-.medal2 { background: rgba(180,180,180,0.15); color: #b4b4b4; }
-.medal3 { background: rgba(180,100,60,0.2); color: #c88060; }
-.medal4 { background: rgba(59,130,246,0.15); color: #7cb4f8; }
-.medal5 { background: rgba(139,146,165,0.15); color: var(--c-muted); }
-.medal6 { background: rgba(100,180,120,0.12); color: #7dc99a; }
+.medal1 { background: rgba(240,165,0,0.22);  color: #f0a500; }
+.medal2 { background: rgba(192,210,240,0.2);  color: #90b8e8; }
+.medal3 { background: rgba(180,100,60,0.22);  color: #c88060; }
+.medal4 { background: rgba(59,130,246,0.2);   color: #60a5fa; }
+.medal5 { background: rgba(168,85,247,0.18);  color: #c084fc; }
+.medal6 { background: rgba(20,184,166,0.18);  color: #2dd4bf; }
 .prizeNote { font-size: 11px; color: var(--c-muted); margin-top: 6px; line-height: 1.4; }
 
 .teamsHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
