@@ -78,3 +78,16 @@
   .contentRow { grid-template-columns: 1fr; }
   .prizeCard { position: static; }
 }
+
+.unpaidRow { opacity: 0.7; }
+.paidBtn { width: 28px; height: 28px; border-radius: 50%; border: none; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.paidBtnPaid { background: rgba(45,189,110,0.2); color: #2dbd6e; }
+.paidBtnPaid:hover { background: rgba(45,189,110,0.35); }
+.paidBtnUnpaid { background: var(--c-surface2); color: var(--c-muted); }
+.paidBtnUnpaid:hover { background: rgba(45,189,110,0.1); color: #2dbd6e; border-color: rgba(45,189,110,0.3); }
+.paidBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.paymentSummary { margin-top: 10px; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; }
+.paymentSummaryLabel { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-muted); }
+.paymentSummaryValue { font-size: 18px; font-weight: 600; color: var(--c-text); }
+.paymentSummaryAmount { font-size: 12px; color: var(--c-muted); }

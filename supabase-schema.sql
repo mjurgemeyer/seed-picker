@@ -10,7 +10,7 @@ create table if not exists tournament_settings (
   id              integer primary key default 1,
   starts_at       timestamptz not null default now() + interval '7 days',
   picks_locked    boolean not null default false,
-  season_label    text not null default '2026 NCAA Tournament'
+  season_label    text not null default '2025 NCAA Tournament'
 );
 insert into tournament_settings (id) values (1) on conflict do nothing;
 
@@ -30,6 +30,7 @@ create table if not exists entries (
   user_id     uuid not null references auth.users(id) on delete cascade,
   entry_index integer not null check (entry_index in (0, 1)),
   entry_name  text not null,
+  paid        boolean not null default false,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
   unique (user_id, entry_index)
@@ -113,25 +114,25 @@ create policy "Allow profile insert"  on profiles for insert with check (true);
 create policy "Owner update profile"  on profiles for update using (auth.uid() = id);
 
 -- ============================================================
--- SEED TEAMS (2026 NCAA Tournament bracket)
+-- SEED TEAMS (2025 NCAA Tournament bracket)
 -- ============================================================
 insert into teams (seed, name, region) values
-  (1,'Duke','East'),(1,'Arizona','West'),(1,'Florida','South'),(1,'Michigan','Midwest'),
-  (2,'UConn','East'),(2,'Purdue','Midwest'),(2,'Houston','South'),(2,'Iowa State','West'),
-  (3,'Illinois','East'),(3,'Gonzaga','West'),(3,'Michigan State','Midwest'),(3,'Virginia','South'),
-  (4,'Kansas','East'),(4,'Arkansas','South'),(4,'Nebraska','Midwest'),(4,'Alabama','West'),
-  (5,'St. John''s','East'),(5,'Wisconsin','Midwest'),(5,'Vanderbilt','South'),(5,'Texas Tech','West'),
-  (6,'Louisville','West'),(6,'BYU','Midwest'),(6,'North Carolina','South'),(6,'Tennessee','East'),
-  (7,'UCLA','West'),(7,'Miami (FL)','South'),(7,'Saint Mary''s','Midwest'),(7,'Kentucky','East'),
-  (8,'Ohio State','Midwest'),(8,'Villanova','West'),(8,'Clemson','East'),(8,'Georgia','South'),
-  (9,'TCU','Midwest'),(9,'Utah State','West'),(9,'Iowa','East'),(9,'Saint Louis','South'),
-  (10,'UCF','East'),(10,'Missouri','Midwest'),(10,'Texas A&M','South'),(10,'Santa Clara','West'),
-  (11,'South Florida','East'),(11,'VCU','South'),(11,'Texas','Midwest'),(11,'Miami (OH) / SMU','West'),
-  (12,'Northern Iowa','Midwest'),(12,'High Point','South'),(12,'McNeese','West'),(12,'Akron','East'),
-  (13,'California Baptist','West'),(13,'Hawaii','South'),(13,'Troy','East'),(13,'Hofstra','Midwest'),
-  (14,'North Dakota State','West'),(14,'Kennesaw State','South'),(14,'Penn','East'),(14,'Wright State','Midwest'),
-  (15,'Furman','South'),(15,'Queens','West'),(15,'Idaho','Midwest'),(15,'Tennessee State','East'),
-  (16,'Siena','East'),(16,'Long Island','West'),(16,'Howard','South'),(16,'Prairie View A&M / Lehigh','Midwest')
+  (1,'Auburn','East'),(1,'Duke','West'),(1,'Florida','South'),(1,'Houston','Midwest'),
+  (2,'Alabama','East'),(2,'Michigan St','West'),(2,'St. John''s','South'),(2,'Tennessee','Midwest'),
+  (3,'Iowa St','East'),(3,'Kentucky','West'),(3,'Marquette','South'),(3,'Texas Tech','Midwest'),
+  (4,'Arizona','East'),(4,'Maryland','West'),(4,'Purdue','South'),(4,'Wisconsin','Midwest'),
+  (5,'Clemson','East'),(5,'Memphis','West'),(5,'Michigan','South'),(5,'Oregon','Midwest'),
+  (6,'BYU','East'),(6,'Illinois','West'),(6,'Missouri','South'),(6,'Ole Miss','Midwest'),
+  (7,'Gonzaga','East'),(7,'Kansas','West'),(7,'St. Mary''s','South'),(7,'UCLA','Midwest'),
+  (8,'Connecticut','East'),(8,'Creighton','West'),(8,'Louisville','South'),(8,'Mississippi St','Midwest'),
+  (9,'Florida St','East'),(9,'Georgia','West'),(9,'Oklahoma','South'),(9,'Utah St','Midwest'),
+  (10,'Arkansas','East'),(10,'Baylor','West'),(10,'New Mexico','South'),(10,'Vanderbilt','Midwest'),
+  (11,'Drake','East'),(11,'NC State','West'),(11,'San Diego St','South'),(11,'VCU','Midwest'),
+  (12,'Colorado St','East'),(12,'Liberty','West'),(12,'McNeese','South'),(12,'UC San Diego','Midwest'),
+  (13,'Akron','East'),(13,'High Point','West'),(13,'Troy','South'),(13,'Yale','Midwest'),
+  (14,'Bryant','East'),(14,'Lipscomb','West'),(14,'Montana','South'),(14,'SFPA','Midwest'),
+  (15,'American','East'),(15,'Central Ark','West'),(15,'Lehigh','South'),(15,'Wofford','Midwest'),
+  (16,'MVSU','East'),(16,'Norfolk St','West'),(16,'SIU Ed','South'),(16,'St. Francis','Midwest')
 on conflict do nothing;
 
 -- ============================================================

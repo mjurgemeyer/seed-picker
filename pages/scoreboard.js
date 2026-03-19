@@ -6,9 +6,6 @@ import styles from './scoreboard.module.css'
 
 const ENTRY_FEE = 100
 
-// ≤15 entries : top 3 split the full pot (60 / 27.5 / 12.5%)
-// 16–29 entries: 4th=$150 flat, 5th=$100 flat; top 3 split remainder
-// 30+ entries  : 4th=$200 flat, 5th=$150 flat, 6th=$100 flat; top 3 split remainder
 function calcPayouts(entryCount) {
   const pot = entryCount * ENTRY_FEE
   if (entryCount <= 15) {
@@ -19,7 +16,6 @@ function calcPayouts(entryCount) {
     ]
   }
   if (entryCount <= 29) {
-    const flats = { '4th': 150, '5th': 100 }
     const remaining = pot - 150 - 100
     return [
       { place: '1st', amount: Math.floor(remaining * 0.600), label: '60% of remaining'   },
@@ -29,7 +25,6 @@ function calcPayouts(entryCount) {
       { place: '5th', amount: 100,                           label: 'Flat payout'         },
     ]
   }
-  // 30+
   const remaining = pot - 200 - 150 - 100
   return [
     { place: '1st', amount: Math.floor(remaining * 0.600), label: '60% of remaining'   },
@@ -78,10 +73,10 @@ export default function ScoreboardPage() {
   const session = useSession()
   const [scoreboard, setScoreboard] = useState([])
   const [tournamentStarted, setTournamentStarted] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
-  // Set of entry ids whose picks are expanded; first row starts expanded
   const [expanded, setExpanded] = useState(new Set())
-  const [firstId, setFirstId] = useState(null)
+  const [togglingPaid, setTogglingPaid] = useState(new Set())
 
   useEffect(() => {
     fetch('/api/scoreboard')
@@ -90,19 +85,17 @@ export default function ScoreboardPage() {
         const board = d.scoreboard || []
         setScoreboard(board)
         setTournamentStarted(d.tournamentStarted || false)
+        setIsAdmin(d.isAdmin || false)
         setLoading(false)
-        if (board.length > 0) {
-          setFirstId(board[0].id)
-          setExpanded(new Set([board[0].id]))
-        }
+        if (board.length > 0) setExpanded(new Set([board[0].id]))
       })
   }, [])
 
   const myId = session?.user?.id
   const entryCount = scoreboard.length
   const payouts = calcPayouts(entryCount)
-
   const allExpanded = scoreboard.length > 0 && scoreboard.every(e => expanded.has(e.id))
+  const paidCount = scoreboard.filter(e => e.paid).length
 
   function toggleRow(id) {
     setExpanded(prev => {
@@ -113,11 +106,25 @@ export default function ScoreboardPage() {
   }
 
   function toggleAll() {
-    if (allExpanded) {
-      setExpanded(new Set())
-    } else {
-      setExpanded(new Set(scoreboard.map(e => e.id)))
+    setExpanded(allExpanded ? new Set() : new Set(scoreboard.map(e => e.id)))
+  }
+
+  async function togglePaid(entry) {
+    if (togglingPaid.has(entry.id)) return
+    setTogglingPaid(prev => new Set([...prev, entry.id]))
+    const newPaid = !entry.paid
+    // Optimistic update
+    setScoreboard(prev => prev.map(e => e.id === entry.id ? { ...e, paid: newPaid } : e))
+    const res = await fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'setPaid', entryId: entry.id, paid: newPaid }),
+    })
+    if (!res.ok) {
+      // Revert on failure
+      setScoreboard(prev => prev.map(e => e.id === entry.id ? { ...e, paid: entry.paid } : e))
     }
+    setTogglingPaid(prev => { const next = new Set(prev); next.delete(entry.id); return next })
   }
 
   return (
@@ -143,7 +150,20 @@ export default function ScoreboardPage() {
           </div>
         ) : (
           <div className={styles.contentRow}>
-            <PrizeCard entryCount={entryCount} />
+            <div>
+              <PrizeCard entryCount={entryCount} />
+              {isAdmin && (
+                <div className={styles.paymentSummary}>
+                  <span className={styles.paymentSummaryLabel}>Fees collected</span>
+                  <span className={styles.paymentSummaryValue}>
+                    {paidCount} / {entryCount}
+                  </span>
+                  <span className={styles.paymentSummaryAmount}>
+                    ${(paidCount * ENTRY_FEE).toLocaleString()} / ${(entryCount * ENTRY_FEE).toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </div>
 
             <div>
               <div className={styles.tableWrap}>
@@ -154,6 +174,7 @@ export default function ScoreboardPage() {
                       <th>Participant</th>
                       <th style={{ width: 90 }}>Score</th>
                       {tournamentStarted && <th style={{ width: 110 }}>Best Possible</th>}
+                      {isAdmin && <th style={{ width: 70 }}>Paid</th>}
                       <th>
                         <div className={styles.teamsHeader}>
                           Teams Picked
@@ -170,8 +191,9 @@ export default function ScoreboardPage() {
                       const rankClass = i === 0 ? styles.rank1 : i === 1 ? styles.rank2 : i === 2 ? styles.rank3 : i === 3 ? styles.rank4 : i === 4 ? styles.rank5 : i === 5 ? styles.rank6 : styles.rankOther
                       const payout = payouts[i]
                       const isExpanded = expanded.has(entry.id)
+                      const isPendingPaid = togglingPaid.has(entry.id)
                       return (
-                        <tr key={entry.id} className={isMe ? styles.myRow : ''}>
+                        <tr key={entry.id} className={`${isMe ? styles.myRow : ''} ${isAdmin && !entry.paid ? styles.unpaidRow : ''}`}>
                           <td><div className={`${styles.rankBadge} ${rankClass}`}>{i + 1}</div></td>
                           <td>
                             <div className={styles.entryName}>
@@ -186,6 +208,18 @@ export default function ScoreboardPage() {
                           <td><div className={styles.scorePts}>{entry.score.toLocaleString()}</div></td>
                           {tournamentStarted && (
                             <td><div className={styles.bestPts}>{entry.best_possible.toLocaleString()}</div></td>
+                          )}
+                          {isAdmin && (
+                            <td>
+                              <button
+                                className={`${styles.paidBtn} ${entry.paid ? styles.paidBtnPaid : styles.paidBtnUnpaid}`}
+                                onClick={() => togglePaid(entry)}
+                                disabled={isPendingPaid}
+                                title={entry.paid ? 'Mark as unpaid' : 'Mark as paid'}
+                              >
+                                {entry.paid ? '✓' : '—'}
+                              </button>
+                            </td>
                           )}
                           <td>
                             {entry.picks ? (
@@ -203,10 +237,7 @@ export default function ScoreboardPage() {
                                     ))}
                                   </div>
                                 )}
-                                <button
-                                  className={styles.toggleBtn}
-                                  onClick={() => toggleRow(entry.id)}
-                                >
+                                <button className={styles.toggleBtn} onClick={() => toggleRow(entry.id)}>
                                   {isExpanded ? '▲ Hide picks' : `▼ Show ${entry.pick_count} picks`}
                                 </button>
                               </div>

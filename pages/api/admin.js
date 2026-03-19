@@ -68,5 +68,12 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true })
   }
 
+  if (action === 'setPaid') {
+    const { entryId, paid } = req.body
+    const { error } = await admin.from('entries').update({ paid }).eq('id', entryId)
+    if (error) return res.status(500).json({ error: error.message })
+    return res.status(200).json({ ok: true })
+  }
+
   res.status(400).json({ error: 'Unknown action' })
 }
