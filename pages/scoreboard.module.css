@@ -58,7 +58,15 @@
 .medal3 { background: rgba(180,100,60,0.2); color: #c88060; }
 .medal4 { background: rgba(59,130,246,0.15); color: #7cb4f8; }
 .medal5 { background: rgba(139,146,165,0.15); color: var(--c-muted); }
+.medal6 { background: rgba(100,180,120,0.12); color: #7dc99a; }
 .prizeNote { font-size: 11px; color: var(--c-muted); margin-top: 6px; line-height: 1.4; }
+
+.teamsHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.toggleAllBtn { background: none; border: 1px solid var(--c-border2); border-radius: 5px; padding: 2px 8px; font-size: 10px; font-weight: 600; color: var(--c-muted); cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.15s; white-space: nowrap; }
+.toggleAllBtn:hover { color: var(--c-text); border-color: var(--c-accent); }
+.toggleBtn { background: none; border: none; color: var(--c-muted); font-size: 11px; cursor: pointer; padding: 4px 0 0; display: block; transition: color 0.15s; }
+.toggleBtn:hover { color: var(--c-accent); }
+.elimStrike { text-decoration: line-through; opacity: 0.6; }
 .prizePct { font-size: 12px; color: var(--c-muted); flex: 1; }
 .prizeAmount { font-size: 14px; font-weight: 600; color: var(--c-text); }
 
