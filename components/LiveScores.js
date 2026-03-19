@@ -42,7 +42,7 @@ export default function LiveScores() {
       </div>
       <div className={styles.section}>
         {live.map(g => (
-          <GameRow key={g.id} game={g} type="live" />
+          <GameRow key={g.id} game={g} />
         ))}
       </div>
     </div>
@@ -53,7 +53,20 @@ function GameRow({ game }) {
   const homeWinning = parseInt(game.homeScore) > parseInt(game.awayScore)
   const awayWinning = parseInt(game.awayScore) > parseInt(game.homeScore)
   const period = game.period
-  const half = period === 1 ? '1st' : period === 2 ? '2nd' : period === 3 ? 'OT' : period > 3 ? `${period-2}OT` : ''
+
+  // ESPN sends STATUS_HALFTIME as a separate status; the clock also reads
+  // "0:00" at end of first half before halftime status kicks in, so we
+  // catch both the explicit flag and the clock-at-zero case.
+  const isHalftime = game.isHalftime || (game.clock === '0:00' && period === 1)
+  const halfLabel = isHalftime
+    ? 'Half'
+    : period === 1 ? '1st'
+    : period === 2 ? '2nd'
+    : period === 3 ? 'OT'
+    : period > 3 ? `${period - 2}OT`
+    : ''
+
+  const clockDisplay = isHalftime ? 'Halftime' : `${game.clock}${halfLabel ? ` ${halfLabel}` : ''}`
 
   return (
     <div className={styles.gameLive}>
@@ -68,7 +81,7 @@ function GameRow({ game }) {
         </div>
       </div>
       <div className={styles.status}>
-        <span className={styles.clock}>{game.clock}{half ? ` ${half}` : ''}</span>
+        <span className={`${styles.clock} ${isHalftime ? styles.clockHalf : ''}`}>{clockDisplay}</span>
       </div>
     </div>
   )
