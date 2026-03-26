@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Header from '../components/Header'
 import styles from './scoreboard.module.css'
 import LiveScores from '../components/LiveScores'
+import VenmoModal from '../components/VenmoModal'
 
 const ENTRY_FEE = 100
 
@@ -78,6 +79,8 @@ export default function ScoreboardPage() {
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(new Set())
   const [togglingPaid, setTogglingPaid] = useState(new Set())
+  const [showVenmo, setShowVenmo] = useState(false)
+  const [currentUserPaid, setCurrentUserPaid] = useState(true)
 
   useEffect(() => {
     fetch('/api/scoreboard')
@@ -87,6 +90,7 @@ export default function ScoreboardPage() {
         setScoreboard(board)
         setTournamentStarted(d.tournamentStarted || false)
         setIsAdmin(d.isAdmin || false)
+        setCurrentUserPaid(d.currentUserPaid ?? true)
         setLoading(false)
         if (board.length > 0) setExpanded(new Set([board[0].id]))
       })
@@ -149,6 +153,16 @@ export default function ScoreboardPage() {
             </button>
           )}
         </div>
+
+        {/* Unpaid entry fee notice — only shown to users who haven't paid */}
+        {!loading && session && !currentUserPaid && !isAdmin && (
+          <div className={styles.unpaidBanner}>
+            <span>Entry fee not yet received.</span>
+            <button className={styles.unpaidBannerLink} onClick={() => setShowVenmo(true)}>
+              Pay via Venmo
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div className={styles.empty}><p>Loading…</p></div>
@@ -268,6 +282,7 @@ export default function ScoreboardPage() {
           </div>
         )}
       </main>
+      {showVenmo && <VenmoModal onClose={() => setShowVenmo(false)} />}
     </>
   )
 }

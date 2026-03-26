@@ -51,5 +51,11 @@ export default async function handler(req, res) {
       : null,
   }))
 
-  res.status(200).json({ scoreboard: sanitized, tournamentStarted, isAdmin })
+  // Find whether the current user has paid any of their entries
+  // (if any entry is paid, we consider them paid — no need to nag)
+  const currentUserPaid = !user ? true : (entries || [])
+    .filter(e => e.user_id === user.id)
+    .some(e => e.paid)
+
+  res.status(200).json({ scoreboard: sanitized, tournamentStarted, isAdmin, currentUserPaid })
 }
